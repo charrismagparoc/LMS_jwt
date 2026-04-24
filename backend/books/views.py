@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models import Q
-from datetime import date, datetime  # ← added datetime
+from datetime import date
 from .models import Book, Member, BorrowRecord
 from .serializers import (
     BookSerializer, MemberSerializer, MemberCreateSerializer,
@@ -29,20 +29,22 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # AFTER: authenticate by email instead of username
         email    = request.data.get('email', '').strip()
         password = request.data.get('password', '')
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=400)
 
+        # Look up user by email
         try:
             user_obj = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
-            return Response({'error': 'Invalid email or password.'}, status=401)
+            return Response({'error': 'No account found with that email.'}, status=401)
+        except User.MultipleObjectsReturned:
+            return Response({'error': 'Multiple accounts share that email. Contact admin.'}, status=400)
 
         user = authenticate(username=user_obj.username, password=password)
         if not user:
-            return Response({'error': 'Invalid email or password.'}, status=401)
+            return Response({'error': 'Incorrect password.'}, status=401)
         if not user.is_active:
             return Response({'error': 'This account is disabled.'}, status=403)
 
@@ -69,6 +71,7 @@ class RefreshView(APIView):
 
 
 class RegisterView(APIView):
+    """Self-registration — from your register_view. Creates User + Member."""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -103,12 +106,17 @@ class MeView(APIView):
         # Update Member profile fields
         if hasattr(user, 'member_profile'):
             member = user.member_profile
-            # AFTER: added 'address' and 'phone', plus birthday handling
             for field in ['member_type', 'bio', 'photo_b64', 'address', 'phone']:
                 if field in data:
                     setattr(member, field, data[field])
             if 'birthday' in data and data['birthday']:
-                member.birthday = datetime.strptime(data['birthday'], '%Y-%m-%d').date()
+                from datetime import datetime
+                try:
+                    member.birthday = datetime.strptime(data['birthday'], '%Y-%m-%d').date()
+                except (ValueError, TypeError):
+                    pass
+            elif 'birthday' in data and not data['birthday']:
+                member.birthday = None
             from django.utils import timezone
             member.profile_updated_at = timezone.now()
             member.save()
@@ -195,6 +203,8 @@ class BookDetailView(APIView):
 
 
 class BookDetailWithHistoryView(APIView):
+    """Returns a single book + its borrow history (from your book_detail view).
+       Admin sees all records. Member sees only their own."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -203,13 +213,16 @@ class BookDetailWithHistoryView(APIView):
         except Book.DoesNotExist:
             return Response({'error': 'Book not found.'}, status=404)
 
+        # Auto-sync overdue status — from your _sync_overdue helper
         active = book.borrow_records.filter(status='borrowed', due_date__lt=date.today())
         active.update(status='overdue')
 
+        # Borrow history — admin sees all, member sees own
         records = book.borrow_records.select_related('member__user').all()
         if not request.user.is_staff:
             records = records.filter(member__user=request.user)
 
+        # user_borrow: the current user's active borrow for this book (like your book_detail view)
         user_borrow = None
         if not request.user.is_staff:
             try:
@@ -223,8 +236,8 @@ class BookDetailWithHistoryView(APIView):
                 pass
 
         return Response({
-            'book':        BookSerializer(book).data,
-            'records':     BorrowRecordSerializer(records, many=True).data,
+            'book':       BookSerializer(book).data,
+            'records':    BorrowRecordSerializer(records, many=True).data,
             'user_borrow': user_borrow,
         })
 
@@ -296,7 +309,7 @@ class MemberDetailView(APIView):
         active = m.borrow_records.filter(status__in=['borrowed', 'overdue', 'pending']).count()
         if active:
             return Response({'error': f'Cannot delete — {active} active borrow(s) exist.'}, status=400)
-        m.user.delete()
+        m.user.delete()  # cascades to member
         return Response({'message': 'Member removed.'})
 
 
@@ -306,11 +319,13 @@ class BorrowRecordListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Auto-mark overdue
         BorrowRecord.objects.filter(status='borrowed', due_date__lt=date.today()).update(status='overdue')
 
         if request.user.is_staff:
             qs = BorrowRecord.objects.select_related('book', 'member__user').all()
         else:
+            # Members only see their own records
             try:
                 member = request.user.member_profile
                 qs = BorrowRecord.objects.select_related('book', 'member__user').filter(member=member)
@@ -333,6 +348,7 @@ class BorrowRecordListCreateView(APIView):
     def post(self, request):
         data = request.data.copy()
 
+        # If member is requesting for themselves
         if not request.user.is_staff:
             try:
                 member = request.user.member_profile
@@ -343,6 +359,7 @@ class BorrowRecordListCreateView(APIView):
         s = BorrowRecordSerializer(data=data)
         if s.is_valid():
             record = s.save()
+            # Admin requests are auto-approved; member requests are pending
             if request.user.is_staff:
                 record.status = 'borrowed'
                 record.book.available_copies -= 1
@@ -358,6 +375,7 @@ class BorrowRecordDetailView(APIView):
     def get_object(self, pk, user):
         try:
             record = BorrowRecord.objects.select_related('book', 'member__user').get(pk=pk)
+            # Members can only access their own records
             if not user.is_staff and record.member.user != user:
                 return None
             return record
@@ -383,6 +401,7 @@ class BorrowRecordDetailView(APIView):
 
 
 class ApproveBorrowView(APIView):
+    """Admin approves a pending borrow request."""
     permission_classes = [IsAdmin]
 
     def post(self, request, pk):
@@ -393,6 +412,7 @@ class ApproveBorrowView(APIView):
 
         if record.status != 'pending':
             return Response({'error': f'Cannot approve — status is already "{record.status}".'}, status=400)
+
         if not record.book.is_available:
             return Response({'error': 'Book is no longer available.'}, status=400)
 
@@ -412,6 +432,7 @@ class ApproveBorrowView(APIView):
 
 
 class RejectBorrowView(APIView):
+    """Admin rejects a pending borrow request."""
     permission_classes = [IsAdmin]
 
     def post(self, request, pk):
@@ -427,7 +448,7 @@ class RejectBorrowView(APIView):
         if not s.is_valid():
             return Response(s.errors, status=400)
 
-        record.status     = 'rejected'
+        record.status = 'rejected'
         record.admin_notes = s.validated_data.get('admin_notes', '')
         record.save()
         return Response(BorrowRecordSerializer(record).data)
@@ -469,24 +490,24 @@ class DashboardStatsView(APIView):
 
         if request.user.is_staff:
             return Response({
-                'total_books':     Book.objects.count(),
+                'total_books':    Book.objects.count(),
                 'available_books': Book.objects.filter(available_copies__gt=0).count(),
-                'total_members':   Member.objects.count(),
-                'active_borrows':  BorrowRecord.objects.filter(status='borrowed').count(),
-                'overdue_count':   BorrowRecord.objects.filter(status='overdue').count(),
-                'pending_count':   BorrowRecord.objects.filter(status='pending').count(),
-                'returned_today':  BorrowRecord.objects.filter(return_date=date.today()).count(),
+                'total_members':  Member.objects.count(),
+                'active_borrows': BorrowRecord.objects.filter(status='borrowed').count(),
+                'overdue_count':  BorrowRecord.objects.filter(status='overdue').count(),
+                'pending_count':  BorrowRecord.objects.filter(status='pending').count(),
+                'returned_today': BorrowRecord.objects.filter(return_date=date.today()).count(),
             })
         else:
             try:
                 member = request.user.member_profile
                 qs = BorrowRecord.objects.filter(member=member)
                 return Response({
-                    'my_active':       qs.filter(status='borrowed').count(),
-                    'my_overdue':      qs.filter(status='overdue').count(),
-                    'my_pending':      qs.filter(status='pending').count(),
-                    'my_returned':     qs.filter(status='returned').count(),
-                    'total_books':     Book.objects.count(),
+                    'my_active':   qs.filter(status='borrowed').count(),
+                    'my_overdue':  qs.filter(status='overdue').count(),
+                    'my_pending':  qs.filter(status='pending').count(),
+                    'my_returned': qs.filter(status='returned').count(),
+                    'total_books': Book.objects.count(),
                     'available_books': Book.objects.filter(available_copies__gt=0).count(),
                 })
             except Member.DoesNotExist:

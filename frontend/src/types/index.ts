@@ -9,7 +9,7 @@ export interface AuthUser {
   // Extended profile fields
   phone?: string;
   address?: string;
-  birthday?: string;   
+  birthday?: string;        // ISO date string YYYY-MM-DD
   joined_at?: string;
   member_type?: string;
   bio?: string;

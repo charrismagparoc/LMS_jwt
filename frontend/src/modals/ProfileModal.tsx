@@ -64,7 +64,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onSaved }) =
         });
         setPhoto(data.photo_b64 || null);
       })
-      .catch(() => {})
+      .catch(() => { /* silently fall back to props */ })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);

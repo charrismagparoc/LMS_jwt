@@ -68,7 +68,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
     bio:         user.bio         || '',
   });
 
-
+  // Fresh data from server on mount
   useEffect(() => {
     API.get('/auth/me/')
       .then((res: any) => {
@@ -153,7 +153,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
 
   return (
     <div className="profile-page">
-      {/* Hero banner */}
+      {/* ── Hero banner ── */}
       <div className="profile-hero">
         <div className="profile-hero-inner">
           {/* Avatar */}
@@ -200,7 +200,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
           </div>
 
-          {/* Name ug role */}
+          {/* Name & role */}
           <div className="profile-hero-info">
             <h1 className="profile-hero-name">{fullName}</h1>
             <div className="profile-hero-meta">
@@ -219,7 +219,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
             )}
           </div>
 
-          {/* Edit or Cancel toggle */}
+          {/* Edit / Cancel toggle */}
           <div className="profile-hero-actions">
             {!editing ? (
               <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={() => setEditing(true)}>
@@ -234,14 +234,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
         </div>
       </div>
 
-      {/* Alerts */}
+      {/* ── Alerts ── */}
       {error   && <div className="profile-alert profile-alert-error">{error}</div>}
       {success && <div className="profile-alert profile-alert-success">{success}</div>}
 
-      {/* Body */}
+      {/* ── Body ── */}
       <div className="profile-body">
         {!editing ? (
-          /* VIEW MODE */
+          /* ── VIEW MODE ── */
           <div className="profile-cards-grid">
             {/* Account Info */}
             <div className="profile-card">
@@ -293,7 +293,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
           </div>
 
         ) : (
-          /* EDIT MODE */
+          /* ── EDIT MODE ── */
           <form onSubmit={handleSubmit} className="profile-edit-form">
             <div className="profile-edit-grid">
               {/* Personal */}
@@ -375,6 +375,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onSaved }) => {
   );
 };
 
+/* Small helper row for view mode */
 const ProfileRow: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
   <div className="profile-detail-row">
     <span className="profile-detail-icon">{icon}</span>

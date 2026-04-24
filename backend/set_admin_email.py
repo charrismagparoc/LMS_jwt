@@ -3,7 +3,6 @@ Quick helper — run once to give the admin account an email so they can log in.
 Usage: python set_admin_email.py
 """
 import os, django
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_project.settings')
 django.setup()
 
