@@ -16,6 +16,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'djoser',
+    'cloudinary',
+    'cloudinary_storage',
     'books',
 ]
 
@@ -67,6 +70,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+# Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'your_cloud_name',
+    'API_KEY':    'your_api_key',
+    'API_SECRET': 'your_api_secret',
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Email - console (development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Comment this out:
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Uncomment and fill these in:
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_PORT          = 587
+EMAIL_HOST_USER     = 'rhissyrhissy@gmail.com'
+EMAIL_HOST_PASSWORD = 'nydt stib jgue mpdh'
+EMAIL_USE_TLS       = True
+DEFAULT_FROM_EMAIL  = 'rhissyrhissy@gmail.com'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -74,11 +100,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
     ],
 }
 
@@ -86,4 +111,14 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS':  True,
+}
+
+DJOSER = {
+    'ACTIVATION_URL':              'activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL':       True,
+    'USER_CREATE_PASSWORD_RETYPE': False,
+    'SERIALIZERS': {},
+    'EMAIL': {
+        'activation': 'books.email.CustomActivationEmail',
+    },
 }

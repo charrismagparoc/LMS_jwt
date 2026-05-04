@@ -1,0 +1,11 @@
+{% block html_body %}
+<h2>Activate your account</h2>
+<p>Hello {{ user.email }},</p>
+<p>Please click the link below to activate your account:</p>
+
+<a href="http://localhost:3000/{{ url|safe }}">
+    Activate Account
+</a>
+
+<p>If you didn't request this, ignore this email.</p>
+<!-- {% endblock html_body %} -->
