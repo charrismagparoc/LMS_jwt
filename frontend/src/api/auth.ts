@@ -17,11 +17,16 @@ export interface RegisterData {
   phone?: string;
 }
 
+export interface RegisterResponse {
+  message: string;
+  user: AuthUser;
+}
+
 export const login = (email: string, password: string) =>
   axios.post<LoginResponse>(`${BASE}/auth/login/`, { email, password });
 
 export const register = (data: RegisterData) =>
-  axios.post<LoginResponse>(`${BASE}/auth/register/`, data);
+  axios.post<RegisterResponse>(`${BASE}/auth/register/`, data);
 
 export const getMe = () =>
   import('./books').then(m => m.default.get<AuthUser>('/auth/me/'));

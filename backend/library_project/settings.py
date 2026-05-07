@@ -69,30 +69,31 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+FRONTEND_URL = 'http://localhost:3000'
 
-# Cloudinary
+# ── Cloudinary (for media/photo storage) ──────────────────────────────────────
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'your_cloud_name',
-    'API_KEY':    'your_api_key',
-    'API_SECRET': 'your_api_secret',
+    'CLOUD_NAME': 'your_cloud_name',   # replace with your Cloudinary cloud name
+    'API_KEY':    'your_api_key',      # replace with your Cloudinary API key
+    'API_SECRET': 'your_api_secret',   # replace with your Cloudinary API secret
 }
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# Email - console (development)
+# ── Email (console for development — shows email in terminal) ─────────────────
+# Use this during development to see emails printed in the terminal:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Comment this out:
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# ── Email (SMTP Gmail — use this in production) ───────────────────────────────
+# Uncomment below and comment the console backend above when ready for real emails:
+EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST         = 'smtp.gmail.com'
+EMAIL_PORT         = 587
+EMAIL_HOST_USER    = 'rhissyrhissy@gmail.com'   # your Gmail address
+EMAIL_HOST_PASSWORD = 'jnkxaagjdasgzisu'     # Gmail App Password (not your normal password)
+EMAIL_USE_TLS      = True
+DEFAULT_FROM_EMAIL = 'rhissyrhissy@gmail.com'
 
-# Uncomment and fill these in:
-EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST          = 'smtp.gmail.com'
-EMAIL_PORT          = 587
-EMAIL_HOST_USER     = 'rhissyrhissy@gmail.com'
-EMAIL_HOST_PASSWORD = 'nydt stib jgue mpdh'
-EMAIL_USE_TLS       = True
-DEFAULT_FROM_EMAIL  = 'rhissyrhissy@gmail.com'
-
+# ── REST Framework ────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -100,24 +101,26 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.MultiPartParser',
     ],
 }
 
+# ── JWT ───────────────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS':  True,
 }
 
+# ── Djoser (email activation) ─────────────────────────────────────────────────
 DJOSER = {
-    'ACTIVATION_URL':              'activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL':       True,
+    'ACTIVATION_URL':         'activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL':  True,
     'USER_CREATE_PASSWORD_RETYPE': False,
-    'SERIALIZERS': {},
     'EMAIL': {
         'activation': 'books.email.CustomActivationEmail',
     },

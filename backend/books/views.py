@@ -5,7 +5,14 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Q
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.conf import settings
 from datetime import date
 from .models import Book, Member, BorrowRecord
 from .serializers import (
@@ -70,6 +77,25 @@ class RefreshView(APIView):
             return Response({'error': 'Invalid or expired refresh token.'}, status=401)
 
 
+def send_activation_email(request, user):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    activation_url = request.build_absolute_uri(f'/api/v1/auth/activate/{uid}/{token}/')
+    subject = 'Activate your Librarium account'
+    message = render_to_string('emails/activation.html', {
+        'user': user,
+        'activation_url': activation_url,
+    })
+    send_mail(
+        subject=subject,
+        message='Please activate your account by clicking the link in this email.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        html_message=message,
+        fail_silently=False,
+    )
+
+
 class RegisterView(APIView):
     """Self-registration — from your register_view. Creates User + Member."""
     permission_classes = [AllowAny]
@@ -78,13 +104,37 @@ class RegisterView(APIView):
         s = RegisterSerializer(data=request.data)
         if not s.is_valid():
             return Response(s.errors, status=400)
-        user    = s.save()
-        refresh = RefreshToken.for_user(user)
+        user = s.save()
+        send_activation_email(request, user)
         return Response({
-            'access':  str(refresh.access_token),
-            'refresh': str(refresh),
-            'user':    UserSerializer(user).data,
+            'message': (
+                'Your account has been created. Please check your email to activate your account '
+                'before logging in.'
+            ),
+            'user': UserSerializer(user).data,
         }, status=201)
+
+
+class ActivateView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, uid, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is None or not default_token_generator.check_token(user, token):
+            return Response({'detail': 'Activation link is invalid or expired.'}, status=400)
+
+        if user.is_active:
+            return Response({'detail': 'Account is already activated.'}, status=200)
+
+        user.is_active = True
+        user.save()
+        login_url = f"{settings.FRONTEND_URL.rstrip('/')}/login"
+        return redirect(login_url)
 
 
 class MeView(APIView):
@@ -129,7 +179,7 @@ class MeView(APIView):
 class BookListCreateView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [IsAuthenticated()]
+            return [AllowAny()]
         return [IsAdmin()]
 
     def get(self, request):
@@ -156,7 +206,7 @@ class BookListCreateView(APIView):
 class BookDetailView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [IsAuthenticated()]
+            return [AllowAny()]
         return [IsAdmin()]
 
     def get_object(self, pk):

@@ -235,8 +235,8 @@ export default function App() {
     if (showRegister) {
       return (
         <Register
-          onRegister={(u: AuthUser, access: string, refresh: string) => {
-            handleLogin(u, access, refresh);
+          onRegister={() => {
+            showToast('Registration successful! Check your email to activate your account.', 'success');
             setShowRegister(false);
           }}
           onGoLogin={() => setShowRegister(false)}

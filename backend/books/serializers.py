@@ -40,6 +40,7 @@ class RegisterSerializer(serializers.Serializer):
             first_name = validated_data['first_name'],
             last_name  = validated_data.get('last_name', ''),
             email      = validated_data['email'],
+            is_active  = False,
         )
         Member.objects.create(user=user, phone=validated_data.get('phone', ''))
         return user

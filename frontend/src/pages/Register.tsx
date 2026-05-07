@@ -5,7 +5,7 @@ import { AuthUser } from '../types';
 import Logo from '../components/Logo';
 
 interface RegisterProps {
-  onRegister: (user: AuthUser, access: string, refresh: string) => void;
+  onRegister: () => void;
   onGoLogin: () => void;
 }
 
@@ -36,7 +36,8 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoLogin }) => {
         last_name:  form.last_name,
         phone:      form.phone,
       });
-      onRegister(data.user, data.access, data.refresh);
+      setError('');
+      onRegister();
     } catch (e: any) {
       const err = e.response?.data;
       if (err?.email)            setError('Email: ' + err.email[0]);
