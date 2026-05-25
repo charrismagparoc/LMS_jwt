@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Book, BookDetail } from '../types';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'https://lmsjwt-production.up.railway.app/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
