@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { AuthUser } from '../types';
 
-const BASE = 'http://localhost:8000/api';
+const BASE = 'https://lmsjwt-production.up.railway.app/api';
 
 export interface LoginResponse {
   access: string;
