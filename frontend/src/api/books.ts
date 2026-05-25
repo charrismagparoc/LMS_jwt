@@ -23,7 +23,7 @@ API.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post('http://localhost:8000/api/auth/refresh/', { refresh });
+          const res = await axios.post('https://lmsjwt-production.up.railway.app/api/auth/refresh/', { refresh });
           localStorage.setItem('access_token', res.data.access);
           original.headers.Authorization = `Bearer ${res.data.access}`;
           return API(original);
