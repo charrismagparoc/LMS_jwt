@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import Book, Member, BorrowRecord
+from .models import Book, Member, BorrowRecord, EmailVerification, KnowledgeBase, ChatMessage
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -40,7 +40,6 @@ class RegisterSerializer(serializers.Serializer):
             first_name = validated_data['first_name'],
             last_name  = validated_data.get('last_name', ''),
             email      = validated_data['email'],
-            is_active  = False,
         )
         Member.objects.create(user=user, phone=validated_data.get('phone', ''))
         return user
@@ -177,15 +176,16 @@ class MemberSerializer(serializers.ModelSerializer):
     email                = serializers.EmailField(source='user.email')
     name                 = serializers.ReadOnlyField()
     active_borrows_count = serializers.ReadOnlyField()
+    is_active            = serializers.BooleanField(source='user.is_active', read_only=True)
 
     class Meta:
         model  = Member
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email',
-            'phone', 'joined_at', 'name', 'active_borrows_count',
+            'phone', 'joined_at', 'name', 'active_borrows_count', 'is_active',
             'member_type', 'bio', 'photo_b64', 'profile_updated_at',
         ]
-        read_only_fields = ['id', 'joined_at', 'profile_updated_at']
+        read_only_fields = ['id', 'joined_at', 'profile_updated_at', 'is_active']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -240,6 +240,7 @@ class BorrowRecordSerializer(serializers.ModelSerializer):
             'overdue_days', 'days_until_due', 'days_remaining', 'created_at',
         ]
         read_only_fields = ['id', 'status', 'return_date', 'borrow_date', 'created_at']
+        extra_kwargs = {'due_date': {'required': False}}
 
     def validate(self, data):
         book   = data.get('book')
@@ -285,3 +286,75 @@ class ApproveBorrowSerializer(serializers.Serializer):
 
 class RejectBorrowSerializer(serializers.Serializer):
     admin_notes = serializers.CharField(required=False, allow_blank=True, default='')
+
+# ── UserDetailSerializer (used by MeView + LoginView) ─────────────────────────
+class UserDetailSerializer(serializers.ModelSerializer):
+    role        = serializers.SerializerMethodField()
+    member_id   = serializers.SerializerMethodField()
+    is_staff    = serializers.BooleanField(read_only=True)
+    member_type = serializers.SerializerMethodField()
+    bio         = serializers.SerializerMethodField()
+    photo_b64   = serializers.SerializerMethodField()
+    address     = serializers.SerializerMethodField()
+    birthday    = serializers.SerializerMethodField()
+    phone       = serializers.SerializerMethodField()
+    joined_at   = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = User
+        fields = [
+            'id', 'username', 'first_name', 'last_name', 'email',
+            'is_staff', 'role', 'member_id',
+            'member_type', 'bio', 'photo_b64',
+            'address', 'birthday', 'phone', 'joined_at',
+        ]
+
+    def get_role(self, obj):
+        return 'admin' if obj.is_staff else 'member'
+
+    def get_member_id(self, obj):
+        try: return obj.member_profile.id
+        except Exception: return None
+
+    def get_member_type(self, obj):
+        try: return obj.member_profile.member_type or ''
+        except Exception: return ''
+
+    def get_bio(self, obj):
+        try: return obj.member_profile.bio or ''
+        except Exception: return ''
+
+    def get_photo_b64(self, obj):
+        try: return obj.member_profile.photo_b64 or ''
+        except Exception: return ''
+
+    def get_address(self, obj):
+        try: return obj.member_profile.address or ''
+        except Exception: return ''
+
+    def get_birthday(self, obj):
+        try:
+            b = obj.member_profile.birthday
+            return str(b) if b else None
+        except Exception: return None
+
+    def get_phone(self, obj):
+        try: return obj.member_profile.phone or ''
+        except Exception: return ''
+
+    def get_joined_at(self, obj):
+        try: return str(obj.member_profile.joined_at)
+        except Exception: return None
+
+
+# ── Chatbot Serializers ───────────────────────────────────────────────────────
+class KnowledgeBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = KnowledgeBase
+        fields = '__all__'
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = ChatMessage
+        fields = '__all__'

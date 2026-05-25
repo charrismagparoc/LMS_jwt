@@ -803,3 +803,42 @@ body {
   padding: 18px 0 0;
   border-top: 1px solid var(--border);
 }
+
+/* ── Form success message ─────────────────────────────────────────────────── */
+.form-success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #059669;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  font-family: 'Jost', sans-serif;
+}
+[data-theme='dark'] .form-success { background: rgba(16,185,129,0.15); color: #34d399; }
+
+/* ── PIN input row ────────────────────────────────────────────────────────── */
+.pin-input-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+.pin-box {
+  width: 48px; height: 58px;
+  border-radius: 12px;
+  border: 2px solid var(--border, #c29b87);
+  background: var(--surface2, #f5ede0);
+  text-align: center;
+  font-size: 24px; font-weight: 800;
+  color: var(--text, #2c1a0e);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: 'Jost', monospace;
+}
+.pin-box:focus {
+  border-color: var(--oak, #a97954);
+  box-shadow: 0 0 0 3px rgba(169,121,84,0.2);
+}
+[data-theme='dark'] .pin-box { background: var(--surface2, #2a2a2a); border-color: var(--border, #444); color: var(--text, #f0e6d3); }
+[data-theme='dark'] .pin-box:focus { border-color: var(--oak, #c29b87); box-shadow: 0 0 0 3px rgba(194,155,135,0.2); }

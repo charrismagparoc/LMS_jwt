@@ -7,13 +7,14 @@ import {
   getBooks, createBook, updateBook,
   getMembers, createMember, updateMember,
   getBorrows, createBorrow, approveBorrow, rejectBorrow, returnBook,
-  getDashboardStats,
+  getDashboardStats, toggleMemberActive,
 } from './api';
 import API from './api/books';
 
 // Auth
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyPin  from './pages/VerifyPin';
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -44,6 +45,7 @@ import MemberProfileModal   from './modals/MemberProfileModal';
 import RulesModal           from './modals/RulesModal';
 
 import './App.css';
+import ChatbotWidget from './components/ChatbotWidget';
 
 function extractApiError(e: any, fallback: string): string {
   const err = e?.response?.data;
@@ -109,7 +111,9 @@ export default function App() {
 
   // ── Navigation ────────────────────────────────────────────────
   const [tab, setTab]                   = useState<Tab>('dashboard');
-  const [showRegister, setShowRegister] = useState(false);
+  type AuthScreen = 'login' | 'register' | 'verifyPin';
+  const [authScreen,  setAuthScreen]  = useState<AuthScreen>('login');
+  const [verifyEmail, setVerifyEmail] = useState<string>('');
   const [viewBookId, setViewBookId]     = useState<number | null>(null);
 
   // ── Data ──────────────────────────────────────────────────────
@@ -232,18 +236,30 @@ export default function App() {
   };
 
   if (!user) {
-    if (showRegister) {
+    if (authScreen === 'verifyPin') {
       return (
-        <Register
-          onRegister={() => {
-            showToast('Registration successful! Check your email to activate your account.', 'success');
-            setShowRegister(false);
-          }}
-          onGoLogin={() => setShowRegister(false)}
+        <VerifyPin
+          email={verifyEmail}
+          onVerified={() => setAuthScreen('login')}
+          onGoLogin={() => setAuthScreen('login')}
         />
       );
     }
-    return <Login onLogin={handleLogin} onGoRegister={() => setShowRegister(true)} />;
+    if (authScreen === 'register') {
+      return (
+        <Register
+          onNeedVerify={(email: string) => { setVerifyEmail(email); setAuthScreen('verifyPin'); }}
+          onGoLogin={() => setAuthScreen('login')}
+        />
+      );
+    }
+    return (
+      <Login
+        onLogin={handleLogin}
+        onGoRegister={() => setAuthScreen('register')}
+        onNeedVerify={(email: string) => { setVerifyEmail(email); setAuthScreen('verifyPin'); }}
+      />
+    );
   }
 
   const isAdmin = user.role === 'admin';
@@ -423,6 +439,7 @@ export default function App() {
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
+    <ChatbotWidget user={user} />
     </div>
   );
 }

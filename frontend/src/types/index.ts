@@ -5,6 +5,7 @@ export interface AuthUser {
   last_name: string;
   email: string;
   role: 'admin' | 'member';
+  is_staff: boolean;
   member_id: number | null;
   // Extended profile fields
   phone?: string;
@@ -43,6 +44,11 @@ export interface Member {
   joined_at: string;
   name: string;
   active_borrows_count: number;
+  is_active: boolean;
+  member_type?: string;
+  bio?: string;
+  photo_b64?: string;
+  profile_updated_at?: string;
   password?: string;
 }
 
@@ -80,7 +86,7 @@ export interface AdminDashboardStats {
   active_borrows: number;
   overdue_count: number;
   pending_count: number;
-  returned_today: number;
+  returned_count: number;
 }
 
 export interface MemberDashboardStats {

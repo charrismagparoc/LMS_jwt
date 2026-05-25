@@ -15,10 +15,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # enables logout token blacklisting
     'corsheaders',
-    'djoser',
-    'cloudinary',
-    'cloudinary_storage',
     'books',
 ]
 
@@ -69,31 +67,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
-FRONTEND_URL = 'http://localhost:3000'
 
-# ── Cloudinary (for media/photo storage) ──────────────────────────────────────
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'your_cloud_name',   # replace with your Cloudinary cloud name
-    'API_KEY':    'your_api_key',      # replace with your Cloudinary API key
-    'API_SECRET': 'your_api_secret',   # replace with your Cloudinary API secret
-}
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# ── Email (console for development — shows email in terminal) ─────────────────
-# Use this during development to see emails printed in the terminal:
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# ── Email (SMTP Gmail — use this in production) ───────────────────────────────
-# Uncomment below and comment the console backend above when ready for real emails:
-EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST         = 'smtp.gmail.com'
-EMAIL_PORT         = 587
-EMAIL_HOST_USER    = 'rhissyrhissy@gmail.com'   # your Gmail address
-EMAIL_HOST_PASSWORD = 'jnkxaagjdasgzisu'     # Gmail App Password (not your normal password)
-EMAIL_USE_TLS      = True
-DEFAULT_FROM_EMAIL = 'rhissyrhissy@gmail.com'
-
-# ── REST Framework ────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -109,19 +83,19 @@ REST_FRAMEWORK = {
     ],
 }
 
-# ── JWT ───────────────────────────────────────────────────────────────────────
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
-}
+# ── Email (Gmail SMTP) ───────────────────────────────────────────────────────
+EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST         = 'smtp.gmail.com'
+EMAIL_PORT         = 587
+EMAIL_USE_TLS      = True
+EMAIL_HOST_USER    = 'gorra.razelleeve05@gmail.com'
+EMAIL_HOST_PASSWORD = 'gugzzfjfnapyugqu'   # ← Gmail App Password
+DEFAULT_FROM_EMAIL = 'Librarium <gorra.razelleeve05@gmail.com>'
 
-# ── Djoser (email activation) ─────────────────────────────────────────────────
-DJOSER = {
-    'ACTIVATION_URL':         'activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL':  True,
-    'USER_CREATE_PASSWORD_RETYPE': False,
-    'EMAIL': {
-        'activation': 'books.email.CustomActivationEmail',
-    },
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME':   timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME':  timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS':   True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }

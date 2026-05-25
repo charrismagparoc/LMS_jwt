@@ -2,7 +2,3 @@ django>=4.2
 djangorestframework>=3.14
 django-cors-headers>=4.0
 djangorestframework-simplejwt>=5.3
-djoser>=2.2
-cloudinary>=1.36
-django-cloudinary-storage>=0.3.0
-pillow>=10.0

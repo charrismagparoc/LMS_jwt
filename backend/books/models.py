@@ -86,6 +86,21 @@ class Member(models.Model):
         ordering = ['user__first_name']
 
 
+class EmailVerification(models.Model):
+    """Stores a 6-digit PIN for account activation."""
+    user       = models.OneToOneField(User, on_delete=models.CASCADE, related_name='email_verification')
+    pin        = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_valid(self):
+        from django.utils import timezone
+        return timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"PIN for {self.user.email}"
+
+
 class BorrowRecord(models.Model):
     STATUS_CHOICES = [
         ('pending',  'Pending'),
@@ -136,3 +151,29 @@ class BorrowRecord(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+# ── Chatbot Models ────────────────────────────────────────────────────────────
+class KnowledgeBase(models.Model):
+    title        = models.CharField(max_length=255)
+    text_content = models.TextField(blank=True, null=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['title']
+
+
+class ChatMessage(models.Model):
+    ROLE_CHOICES = (('user', 'User'), ('assistant', 'Assistant'))
+    role       = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    message    = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.role}] {self.message[:60]}"
+
+    class Meta:
+        ordering = ['created_at']

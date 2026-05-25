@@ -43,5 +43,5 @@ export const getBooks      = (params?: object) => API.get<Book[]>('/books/', { p
 export const getBook       = (id: number)      => API.get<Book>(`/books/${id}/`);
 export const getBookDetail = (id: number)      => API.get<BookDetail>(`/books/${id}/detail/`);
 export const createBook    = (data: Partial<Book>) => API.post<Book>('/books/', data);
-export const updateBook    = (id: number, data: Partial<Book>) => API.put<Book>(`/books/${id}/`, data);
+export const updateBook    = (id: number, data: Partial<Book>) => API.patch<Book>(`/books/${id}/`, data);
 export const deleteBook    = (id: number) => API.delete(`/books/${id}/`);
