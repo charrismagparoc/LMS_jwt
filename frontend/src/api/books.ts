@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { Book, BookDetail } from '../types';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+
 const API = axios.create({
-  baseURL: 'https://lmsjwt-production.up.railway.app/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -23,7 +25,7 @@ API.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post('https://lmsjwt-production.up.railway.app/api/auth/refresh/', { refresh });
+          const res = await axios.post(`${API_BASE_URL}/auth/refresh/`, { refresh });
           localStorage.setItem('access_token', res.data.access);
           original.headers.Authorization = `Bearer ${res.data.access}`;
           return API(original);
