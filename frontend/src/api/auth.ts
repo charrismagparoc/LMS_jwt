@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { AuthUser } from '../types';
 
-const BASE = 'https://lmsjwt-production.up.railway.app/api';
+const BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 export interface LoginResponse {
   access: string;
