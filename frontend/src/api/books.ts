@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { Book, BookDetail } from '../types';
 
+// Get API URL from environment variable or use localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 const API = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -23,7 +26,8 @@ API.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post('http://localhost:8000/api/auth/refresh/', { refresh });
+          const refreshUrl = `${API_BASE_URL.replace('/api', '')}/api/auth/refresh/`;
+          const res = await axios.post(refreshUrl, { refresh });
           localStorage.setItem('access_token', res.data.access);
           original.headers.Authorization = `Bearer ${res.data.access}`;
           return API(original);
@@ -45,3 +49,4 @@ export const getBookDetail = (id: number)      => API.get<BookDetail>(`/books/${
 export const createBook    = (data: Partial<Book>) => API.post<Book>('/books/', data);
 export const updateBook    = (id: number, data: Partial<Book>) => API.patch<Book>(`/books/${id}/`, data);
 export const deleteBook    = (id: number) => API.delete(`/books/${id}/`);
+
