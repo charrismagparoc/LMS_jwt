@@ -1,7 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
 import os
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-library-system-secret-key-2024'
 DEBUG = True
@@ -47,7 +46,6 @@ TEMPLATES = [
     },
 ]
 WSGI_APPLICATION = 'library_project.wsgi.application'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -58,7 +56,6 @@ DATABASES = {
         'PORT': os.environ.get('PGPORT', '5432'),
     }
 }
-
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -70,6 +67,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     'https://*.up.railway.app',
+    'https://*.vercel.app',
+    'https://lms-jwt.vercel.app',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
