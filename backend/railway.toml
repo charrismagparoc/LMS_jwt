@@ -2,4 +2,4 @@
 builder = "railpack"
 
 [deploy]
-startCommand = "gunicorn library_project.wsgi:application --bind 0.0.0.0:8000"
+startCommand = "gunicorn library_project.wsgi:application --bind 0.0.0.0:$PORT"
