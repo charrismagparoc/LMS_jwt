@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Book, Member, AuthUser } from '../types';
-import { ModalWrapper, FormField } from '../components/ModalWrapper';
 
 const P = {
   pageBg:        '#f5f0e8',
