@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Book, BookDetail } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL ? `https://${process.env.REACT_APP_API_URL}/api` : 'http://localhost:8000/api';
 
 const API = axios.create({
   baseURL: API_BASE_URL,
