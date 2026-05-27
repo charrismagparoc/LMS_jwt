@@ -5,3 +5,4 @@ djangorestframework-simplejwt>=5.3
 gunicorn
 whitenoise
 psycopg2-binary
+requests
