@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-library-system-secret-key-2024'
@@ -66,10 +67,18 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+# ── CORS Configuration ───────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = [
+    "https://lms-jwt.vercel.app",
+    "https://lms-444s72hno-charrismagparocs-projects.vercel.app",
+    "http://localhost:3000",  # For local development
+    "http://localhost:5173",  # For Vite dev server
+]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.up.railway.app',
+    'https://lms-jwt.vercel.app',
+    'https://lms-444s72hno-charrismagparocs-projects.vercel.app',
 ]
 
 REST_FRAMEWORK = {
@@ -103,3 +112,4 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS':   True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
