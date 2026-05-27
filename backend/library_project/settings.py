@@ -86,12 +86,12 @@ REST_FRAMEWORK = {
     ],
 }
 EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST         = 'smtp.gmail.com'
+EMAIL_HOST         = 'smtp-relay.brevo.com'
 EMAIL_PORT         = 587
 EMAIL_USE_TLS      = True
-EMAIL_HOST_USER    = 'gorra.razelleeve05@gmail.com'
-EMAIL_HOST_PASSWORD = 'gugzzfjfnapyugqu'
-DEFAULT_FROM_EMAIL = 'Librarium <gorra.razelleeve05@gmail.com>'
+EMAIL_HOST_USER    = 'ac7012001@smtp-brevo.com'
+EMAIL_HOST_PASSWORD = 'xsmtpsib-7cfc2a1d3fd49e1000f2b04bb213eb42814bffda6b29cf521f7fe9a4c02b5aa2-krxC3aUbaMBvKtZt'
+DEFAULT_FROM_EMAIL = 'Librarium <ac7012001@smtp-brevo.com>'
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':   timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME':  timedelta(days=7),
