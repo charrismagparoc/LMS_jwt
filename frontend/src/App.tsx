@@ -7,7 +7,7 @@ import {
   getBooks, createBook, updateBook,
   getMembers, createMember, updateMember,
   getBorrows, createBorrow, approveBorrow, rejectBorrow, returnBook,
-  getDashboardStats,
+  getDashboardStats, toggleMemberActive,
 } from './api';
 import API from './api/books';
 
